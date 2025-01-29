@@ -18,10 +18,14 @@ def get_users():
     return jsonify([user.__dict__ for user in users])
 
 # Get user by ID
-@app.route('/users/<int:user_id>', methods=['GET'])
-def get_user_by_id(user_id):
-    with pydapper.using(get_db_connection()) as commands:
-        user = commands.query_first("SELECT * FROM users WHERE id = ?", (user_id,), model=User)
+@app.route('/users/<int:id>', methods=['GET'])
+def get_user_by_id(id):
+    #print(id)
+    sentinel = object()
+    with pydapper.using(get_db_connection()) as commands:    
+        user = commands.query_first("SELECT * FROM users WHERE id =?id?",param={"id": id}, model=User)
+        
+        #print(user)
     if user:
         return jsonify(user.__dict__)
     return jsonify({"error": "User not found"}), 404
@@ -37,7 +41,7 @@ def add_user():
         return jsonify({"error": "Name and age are required"}), 400
 
     with pydapper.using(get_db_connection()) as commands:
-        commands.execute("""INSERT INTO users (name, age) VALUES (?, ?)""", (name, age))
+        commands.execute("INSERT INTO users (name, age) VALUES (?name?, ?age?)", param={"name": name,"age":age})
         #commands.execute("INSERT INTO users (name, age) VALUES(?, ?)", (name, age))
         #commands.execute("INSERT INTO users (name, age) VALUES (?, ?)", (name, age))
         
